@@ -1,0 +1,105 @@
+%
+% 6.857 homework template
+%
+% NOTE:
+% Be sure to define your team members with the \team command
+% Be sure to define the problem set with the \ps command
+% Be sure to use the \answer command for each of your answers 
+\documentclass[11pt]{article}
+
+\newcommand{\team}{ Victor Williamson \\ Victor Chan \\ David Feldman }
+\newcommand{\ps}{ Problem Set 2 }
+
+%\pagestyle{headings}
+\usepackage[dvips]{graphics,color}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{verbatim}
+\setlength{\parskip}{1pc}
+\setlength{\parindent}{0pt}
+\setlength{\topmargin}{-3pc}
+\setlength{\textheight}{9.5in}
+\setlength{\oddsidemargin}{0pc}
+\setlength{\evensidemargin}{0pc}
+\setlength{\textwidth}{6.5in}
+
+\newcommand{\answer}[1]{
+\newpage
+\noindent
+\framebox{
+	\vbox{
+		6.857 Homework \hfill {\bf \ps} \hfill \# #1  \\ 
+		\team \hfill \today
+	}
+}
+\bigskip
+
+}
+
+
+\begin{document}
+
+\answer{2-1 - MAC Attack}
+\begin{comment}
+Different font styles: 
+
+Several ways to do \textit{italics}, {\it italics}, \emph{italics}.
+
+Several ways to do \textbf{bold}, {\bf bold}.
+
+Other fonts: \textsc{Blah}.
+
+{\tiny tiny}, {\small small}, {\normalsize normalsize}, {\Large Large}. {\LARGE
+LARGE}. {\huge huge}, {\Huge Huge}.
+
+F\"{o}\.{r}\'{e}\r{i}\^{g}\u{n} Accents.
+\end{comment}
+\answer{2-2 - Truncated-Key AES}
+
+\begin{comment}
+Here's an example of how to do mathematical symbols in an Equation
+array:
+
+\begin{eqnarray*}
+L & = & \mbox{Total lines of code.} \\
+\rho & = & \mbox{Rate of line replacement.} \\
+\delta & = & \mbox{Density of bugs in replaced line.} \\
+V(t) & = & \mbox{Total number of vulnerabilities at time  } t. \\
+\gamma & = & \mbox{Debugger inspection rate in the open source model.}\\
+\hat{\gamma} & = & \mbox{Debugger inspection rate in the proprietary model .}\\
+\beta & = & \mbox{Adversarial inspection rate in the open source model.}\\
+\hat{\beta} & = & \mbox{Adversarial inspection rate in the proprietary model.}\\
+\end{eqnarray*}
+
+Or you can put symbols inline like this: $\rho$, $\gamma$, and
+$\frac{\alpha}{\beta}$.
+
+Some symbols that may come in handy someday: $\Theta$, $\oplus$, $\cdot$,
+$\ldots$, $\rightarrow$, $\leq$, $\geq$, $m^e \bmod p$,  $\mathbb{N}$, $\mathbb{Z}$.
+
+Superscripts and subscripts: $x^{super}_{sub}$.
+
+Superscripts and subscripts in an equation environment: 
+\begin{equation}
+x^{super}_{sub}
+\end{equation}
+\end{comment}
+
+\answer{2-3 - Ben's Block Cipher}
+\begin{comment}
+\begin{enumerate}
+\item An
+\item ordered
+\item list
+\end{enumerate}
+
+\begin{itemize}
+\item An
+\item unordered
+\item list
+\end{itemize}
+\end{comment}
+\end{document}
+
