@@ -3,7 +3,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.crypto.Cipher;
@@ -28,6 +27,8 @@ public class q2 {
 		byte[] plaintext;
 		String filenameC = "/home/victor/workspace/AES/group7/ciphertext-1.bin";
 		String filenameP = "/home/victor/workspace/AES/group7/plaintext-1.bin";
+		//String filenameC = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/ciphertext-1.bin";
+		//String filenameP = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/plaintext-1.bin";
 
 		File file = new File(filenameC);
 		long length = file.length();
