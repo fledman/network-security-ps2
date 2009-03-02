@@ -17,6 +17,7 @@
 \usepackage{amsmath}
 \usepackage{latexsym}
 \usepackage{verbatim}
+\usepackage{enumerate}
 \setlength{\parskip}{1pc}
 \setlength{\parindent}{0pt}
 \setlength{\topmargin}{-3pc}
@@ -131,19 +132,52 @@ x^{super}_{sub}
 \end{comment}
 
 \answer{2-3 - Ben's Block Cipher}
-\begin{comment}
-\begin{enumerate}
-\item An
-\item ordered
-\item list
+\begin{enumerate}[(a)]
+	\item
+	
+  Consider a given key, (p,S,q). To be more concrete, let us first define our permutations p and q to be lists of numbers of length
+  128 such that each number in 0...127 is represented once (it is a one-to-one mapping). If a 128-bit input is fed into a permutation,
+  say p, then the output P[input] is defined such that output[k] = input[p[k]] for k in 0...127. Let us define S as a one-to-one mapping
+  from $[0,1]^8 \Rightarrow [0,1]^8$.
+  
+  Now take p and chop it into groups of 8 bits, starting from the lsb (bit zero). Since S only operates on groups of 8 bits, we can permute these
+  groups without changing the mappings being processed by the s-box. If we similarly chop q into 8-bit chunks and permute those in the exact
+  same way that we permuted p, then the output bits of S will end up in the same location as in the original key. A 128-bit permutation is
+  composed of 16 groups of 8 bits, and thus we can permute p and q in a byte-wise fashion to produce $16!$ equivalent keys without modifying S.
+  
+  Now that we have permuted the bytes, let us consider the bit-ordering inside the bytes. A short example might be illustrative: if, in every
+  byte-sized chunk of p, we switch the first bit (i.e. bit zero) and the last bit (bit 7), then we can produce an equivalent key solely by
+  swapping the first and last bits of every input key in the mapping defined by S. To generalize, we can permute the 8 bits that comprise each
+  byte of p in any way that we would like and still end up with an equivalent key, so long as this 8-bit permutation is the same in each byte
+  of p, and so long as we permute the bits of the byte-sized input keys of S in the same way as we permuted the bytes in p.
+  
+  Similarly, we can permute the 8-bit output values of S in any way that we would like and obtain equivalent keys,
+  so long as every output value is permuted in the same way and so long as we do the same permutation on every byte in q.
+  
+  These 3 ways to produce equivalent keys, p/q byte-swapping, p/$S_{in}$ bit-swapping, and q/$S_{out}$ bit-swapping, do not overlap.
+  Thus, since there are $8!$ ways to permute 8 bits, we haved found $16! \ast (8!)^2$ equivalent keys to (p,S,q).  
+
+	\item
+	It's important to note that there are many equivalent keys. Thus we can arbitrarily pick certain properties, and then make everything else work out to be consistent.
+
+Here is a way to use a plaintext attack to break this cipher:
+
+Encrypt 0x0h and 0x1h and compare the ciphertexts. We know that S is 1-to-1, and so bits in these 2 ciphertexts should differ in at least 1 and in at most 8 positions. Now encrypt  the other 127 plaintexts where there is a single one bit (i.e. 0x2h, 0x4h, 0x8h, 0x10h,etc). We can similarly compare these ciphertexts to the 0x0h ciphertexts, and mark at which 8 positions the bits differ. Since each bit is part of 1 of the 16 bytes, there should be 16 groups of 8 ciphertexts where the differing bits overlap. Hopefully each group of 8 should in total have 8 bits that differ from the 0x0h ciphertext. It is possible, albeit unlikely, to have less (the minimum is 4). If this is the case, we would look
+to see which bits in the input triggered differing bits in the output, and then encrypt more plaintexts where we set multiple of these input
+bits at a time to 1, looking for more differences from 0x0h until we have 8 bits in each group.
+
+Thus what we have determined is which bits belong together in a byte after p but before q.
+
+We do not know the ordering the different bytes after p, just which bits are part of a single byte. However, note from part a that if we swap the ordering of the bytes produced by p, we can create an equivalent key merely by doing a similar swap on q. Thus, we select an arbitrary ordering of the 16 bytes we found, and use this ordering to begin to partially define p and q.
+
+We also do not yet know how the bits are ordered inside each of the 16 bytes (we just know which bits belong to which byte). Once again, recall from part a that if we alter the inner ordering we can make an equivalent change in the s-box. Now consider the ciphertexts we produced previously for 0x0h,0x1h,0x2h,etc. These ciphertexts can be divided into 9 distinguishable types. After the s-box but before q, 0x0h produces 16 copies of the 0x00h byte mapping, while the others produce 15 copies of the 0x00h byte mapping and 1 copy of the mapping from either 1,2,4,8,16,32,64, or 128 decimal. The later 8 types (i.e. not 0x0h) all have 16 members, representing a common position in the byte. Due to the key equivalence, we can arbitrarily select one of these types to represent the 1st bit, another the 2nd bit, another the 3rd bit,..., and the last the 8th bit. Given these bit groupings, we have fully established p.
+
+We can similarly use key equivalence to establish q as follows. Look at the 0x0h ciphertext. Count all of the ones and all of the zeros and divide each count by 16. We now know how many ones and how many zeros are in the output value defined by S for the input 0x00h. These counts are the 'unique' information; the ordering is arbitrary since we can then adjust q to be consistent. Thus we just pick some bit ordering and let it be the official mapped value for 0x00h (perhaps the ordering created by looking at the 1st byte and reading the bits left to right). We already knew the ordering of the bytes coming out of the s-box (we chose it earlier), and we now know the identity of the byte coming out of the s-box for the input 0x00h. Thus we can just match up the bits inside the bytes to the corresponding bits in the 0x0h ciphertext. This completely defines q.
+
+Since we have established p and q, we can easily enumerate each key,value pair in the s-box by looking at the plaintext/ciphertext pairs for 0x00h-0xFFh, tracing from the input to just before the s-box using p and from the output to just after the s-box using q.
+
 \end{enumerate}
 
-\begin{itemize}
-\item An
-\item unordered
-\item list
-\end{itemize}
-\end{comment}
 \end{document}
 
 
