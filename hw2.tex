@@ -136,7 +136,8 @@ x^{super}_{sub}
 \end{equation}
 \end{comment}
 \paragraph{}
-We found ($K_{29}$,$K'_{29}$) to be (34852308, 324174459). First we note
+We found ($K_{29}$,$K'_{29}$) to be (34852308, 324174459) as decimal and
+(0x0214ced4, 0x1353827b) represented as hexadecimal. First we note
 that meet in the middle reduces the computation time
 from $2^{2n}$ to $2\times2^n$. This works by encrypting over
 $K$ values and decrypting over $K'$ values until an intermediate value
@@ -164,9 +165,15 @@ $K,K'$ at iteration 20 in roughly 1.5 days.
 Our program uses constant memory and the
 limiting factor is time. The Java Virtual Machine maxes out at 1500M of
 memory, and this is chosen for every $s$. Note we only consider $s \geq
-23$. For cost in time we require
-$2^{23}$ encryptions and $2^s$ decryptions for each of $2^s/2^{23}$ iterations. \\
-Memory = 1500M \\
+23$. Our code stores 64 bytes for each of $2^{23}$ intermediate value
+entries because JAVA stores single bytes as 4 bytes. 
+For cost in time we require $2^{23}$ encryptions and $2^s$ decryptions
+for each of $2^s/2^{23}$ iterations. \\
+
+Memory = 
+\begin{equation}
+1500M  \geq C2^{23}M \times 64M = C2^{29}M \approx C512M
+\end{equation}
 Time $\approx$ 
 \begin{equation}
 \frac{2^s}{2^{23}}(2^{23} + 2^s) = 2^s + \frac{2^{2s}}{2^{23}}
