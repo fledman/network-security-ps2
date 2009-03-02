@@ -3,15 +3,18 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 public class q2 {
 
-	private static int s = 25;
+	private static int s = 30;
 	private static Cipher cipher;
+	private static HashSet<Long> chosen;
 
 	private static HashMap<String, byte[]> keylist;
 
@@ -28,10 +31,10 @@ public class q2 {
 		
 		//String filenameC = "/home/victor/workspace/AES/group7/ciphertext-1.bin";
 		//String filenameP = "/home/victor/workspace/AES/group7/plaintext-1.bin";
-		String filenameC = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/ciphertext-25.bin";
-		String filenameP = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/plaintext-25.bin";
-		String filenameOutKey1 = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/k-25.bin";
-		String filenameOutKey2 = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/kp-25.bin";
+		String filenameC = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/ciphertext-30.bin";
+		String filenameP = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/plaintext-30.bin";
+		String filenameOutKey1 = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/k-30.bin";
+		String filenameOutKey2 = "C:/Users/David/Desktop/6.857/pset 2/group7/group7/kp-30.bin";
 
 		File file = new File(filenameC);
 		long length = file.length();
@@ -63,7 +66,7 @@ public class q2 {
 		
 		System.out.println("Doing " + Math.pow(2,s) + " Encryptions");
 		
-		int i = 0;
+		long i = 0;
 		
 		int divisions;
 		
@@ -74,31 +77,40 @@ public class q2 {
 			divisions = (int)Math.pow(2,s-23);
 		}
 		
-		for(int start = 0; start < Math.pow(2,s); start += (Math.pow(2,s)/divisions)){
+		chosen = new HashSet<Long>();
+		chosen.add(-1L);
+		
+		for(long start = 0L; start < Math.pow(2,s); start += (Math.pow(2,s)/divisions)){
 			
 			i++;
 			System.out.println("Section " + i);
 			
-			keylist = new HashMap<String, byte[]>();
+			keylist = new HashMap<String, byte[]>(9000000);
 			
 			// encrypt first
-			for (int x = start; x < start + (Math.pow(2, s) / divisions); x++) {
+			for (long x = start; x < start + (Math.pow(2, s) / divisions); x++) {
 				
-				byte[] key = getkey(x);
+				long knum = -1L;
+				while(!chosen.contains(knum)){
+					knum = (long)(Math.random()* Math.pow(s,2));
+				}
+				byte[] key = getkey(knum);
 				SecretKeySpec skeySpec1 = new SecretKeySpec(key, "AES");
 				
 				cipher.init(Cipher.ENCRYPT_MODE, skeySpec1);
 				byte[] encrypted = cipher.doFinal(plaintext);
 	
-				keylist.put(new String(encrypted), key);
+				keylist.put(new String(encrypted), Arrays.copyOfRange(key,key.length-(s+7)/8,key.length));
 				
-				if(x % 1000000 == 0)
-					System.out.println("Encrypted Key " + x );
+				chosen.add(knum);
+				
+				if(x % 2000000 == 0)
+					System.out.println("Encrypted " + x + " keys" );
 			}
 			
 			System.out.println("Done Encrypting");
 	
-			for (int x = 0; x < Math.pow(2, s); x++) {
+			for (long x = (long)(Math.pow(2, s)-1); x >=0; x--) {
 				
 				byte[] key = getkey(x);
 	
@@ -108,12 +120,14 @@ public class q2 {
 				byte[] decrypted = cipher.doFinal(ciphertext);			
 				String decStr = new String(decrypted);
 				
-				if(x % 1000000 == 0)
+				if(x % 2000000 == 0)
 					System.out.println("Decrypted Key " + x );
 				
 				if(keylist.containsKey(decStr)){
-					byte[] storedKey = keylist.get(decStr);
+					byte[] stored = keylist.get(decStr);
 					System.out.println("Found a potential match");
+					
+					byte[] storedKey = q2.expandFront(stored,16);
 					
 					SecretKeySpec skeySpec1 = new SecretKeySpec(storedKey, "AES");				
 					cipher.init(Cipher.ENCRYPT_MODE, skeySpec1);
@@ -123,7 +137,10 @@ public class q2 {
 					cipher.init(Cipher.ENCRYPT_MODE, skeySpec2);
 					byte[] complete = cipher.doFinal(middle_stage);
 					
-					if(byteArraysEqual(ciphertext,complete)){
+					System.out.println(StringUtils.getHexString(ciphertext));
+					System.out.println(StringUtils.getHexString(complete));
+					
+					if(Arrays.equals(ciphertext,complete)){
 						System.out.println("Match is valid");
 						try {
 							fosk1.write(storedKey);
@@ -132,8 +149,7 @@ public class q2 {
 							System.out.println("Could not write keys");
 						}
 						return;
-					}
-					else{
+					}else{
 						System.out.println("Match is no good");
 					}
 				}
@@ -141,7 +157,7 @@ public class q2 {
 		}
 	}
 
-	private static byte[] getkey(int value) {
+	private static byte[] getkey(long value) {
 
 		byte[] b = new byte[16];
 		b[12] = (byte) (value >>> 24);
@@ -152,16 +168,14 @@ public class q2 {
 
 	}
 	
-	private static boolean byteArraysEqual(byte[] a, byte[] b){
-		if(a.length != b.length)
-			return false;
-		
-		for(int i = 0; i < a.length; i++){
-			if(a[i] != b[i])
-				return false;
+	private static byte[] expandFront(byte[] base, int newLength){
+		if(newLength < base.length)
+			return Arrays.copyOfRange(base, base.length-newLength, base.length);
+		byte[] copy = new byte[newLength];
+		for(int i = 0; i < base.length ; i++){
+			copy[copy.length-1-i] = base[base.length-1-i];
 		}
-		
-		return true;
+		return copy;
 	}
 
 }
