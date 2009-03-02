@@ -318,8 +318,6 @@ public class q2 {
 			             } catch (IOException e) {
 			                 System.out.println("Could not write keys");
 			             }
-						System.out.println("Match is valid: k = " + getInt(storedKey));
-						System.out.println("\nk' = " + getInt(key));
 						break outer;
 					} else {
 						System.out.println("Match is no good");
@@ -343,16 +341,6 @@ public class q2 {
 
 		return b;
 
-	}
-	
-	private static int getInt(byte[] key){
-		int r = 0;
-		r += key[12]*Math.pow(256,3);
-		r += key[13]*256*256;
-		r += key[14]*256;
-		r += key[15];
-		return r;
-		
 	}
 
 	private static boolean byteArraysEqual(byte[] a, byte[] b) {
