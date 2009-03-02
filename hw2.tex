@@ -42,6 +42,39 @@
 \begin{document}
 
 \answer{2-1 - MAC Attack}
+
+a) This MAC procedure is not a good one. It is possible to recover K from the original message M and MAC(K,M). An adversary needs to only intercept MAC(K,M) and the message M to begin decrypting the MAC using AES. 
+
+
+During creation of the MAC we let:
+\newline
+\begin{equation*}
+V_0 = K
+\end{equation*}
+and proceed with 
+\begin{equation*}
+V_i = MAC(M_i,V_{i-1})
+\end{equation*}
+for each i = 0,1,2, ...,n
+\begin{equation}
+V_n = MAC(K,M)
+\end{equation}
+
+In reverse, we would again pad M and break it into n pieces. Then apply the decryption of AES as follows:
+
+\begin{equation*}
+V_{i-1} = decryptAES(M_(i), V_i)
+\end{equation*}
+for all i = n, n-1,...,1,0 where
+\begin{equation*}
+V_0 = K
+\end{equation*} 
+
+Once K is obtained then the attacker could write fake messages and pass them off as authentic by creating the MAC with the retrieved K (Man in the middle attack). Essentially, the problem occurred with this MAC procedure because it reversed the position of the key and message block within AES encryption. This change made it possible to recover the  secret key, which would have been used between the users to validate authenticity.
+
+b) Adding a checksum to this MAC will not make it any better. This adds no protection to the MAC because the XOR of the message blocks does not prevent the key from being retrieved. Since an attacker is able to retrieve K, they will still be able to create fake messages and the correct MAC's these messages. It would be trivial to add on an additional "correct" checksum of the fake message.  
+
+
 \begin{comment}
 Different font styles: 
 
@@ -102,4 +135,5 @@ x^{super}_{sub}
 \end{itemize}
 \end{comment}
 \end{document}
+
 
