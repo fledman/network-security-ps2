@@ -43,8 +43,8 @@
 
 \answer{2-1 - MAC Attack}
 
-a) This MAC procedure is not a good one. It is possible to recover K from the original message M and MAC(K,M). An adversary needs to only intercept MAC(K,M) and the message M to begin decrypting the MAC using AES. 
-
+a) This MAC procedure is not a good one. It is possible for an adversary to recover K using merely the original message M and MAC(K,M), both of which are sent in the clear
+and are readily available to the adversary.
 
 During creation of the MAC we let:
 \newline
@@ -53,24 +53,34 @@ V_0 = K
 \end{equation*}
 and proceed with 
 \begin{equation*}
-V_i = MAC(M_i,V_{i-1})
+V_i = encryptAES(M_i,V_{i-1})
 \end{equation*}
-for each i = 0,1,2, ...,n
+for each i = 1,2,...,n
 \begin{equation}
-V_n = MAC(K,M)
+MAC(K,M) = V_n
 \end{equation}
 
-In reverse, we would again pad M and break it into n pieces. Then apply the decryption of AES as follows:
+It is very simple to reverse this procedure. We would again pad M and break it into n 128-bit blocks. We then use AES decryption as follows:
 
 \begin{equation*}
 V_{i-1} = decryptAES(M_(i), V_i)
 \end{equation*}
 for all i = n, n-1,...,1,0 where
 \begin{equation*}
-V_0 = K
+V_n = MAC(K,M)
+\end{equation*}
+as received from the sender, and
+\begin{equation*}
+K = V_0
 \end{equation*} 
 
-Once K is obtained then the attacker could write fake messages and pass them off as authentic by creating the MAC with the retrieved K (Man in the middle attack). Essentially, the problem occurred with this MAC procedure because it reversed the position of the key and message block within AES encryption. This change made it possible to recover the  secret key, which would have been used between the users to validate authenticity.
+Once K is obtained then the attacker could write fake messages and pass them off as authentic by using the MAC creation procedure described above, since the key K is now known. Essentially, the problem occurred with this MAC procedure because it reversed the position of the key and message block within AES encryption. This change made it possible to recover the  secret key, which would have been used between the users to validate authenticity.
+
+Note that
+\begin{equation*}
+xxxAES(K,B)
+\end{equation*}
+denotes the encrpytion or decryption of a 128-bit plaintext block B with a 128-bit key K using the AES algorithm.
 
 b) Adding a checksum to this MAC will not make it any better. This adds no protection to the MAC because the XOR of the message blocks does not prevent the key from being retrieved. Since an attacker is able to retrieve K, they will still be able to create fake messages and the correct MAC's these messages. It would be trivial to add on an additional "correct" checksum of the fake message.  
 
