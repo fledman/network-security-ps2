@@ -52,14 +52,14 @@ During creation of the MAC we let:
 \begin{equation*}
 V_0 = K
 \end{equation*}
-for each i = 0,1,2, ...,n
+for each i = 1,2,...,n
 \begin{equation*}
 V_i = encryptAES(M_i,V_{i-1})
 \end{equation*}
 to produce
-\begin{equation}
+\begin{equation*}
 MAC(K,M) = V_n
-\end{equation}
+\end{equation*}
 
 It is very simple to reverse this procedure. We would again pad M and break it into n 128-bit blocks. We then use AES decryption as follows:
 
@@ -70,14 +70,10 @@ where
 \begin{equation*}
 V_n = MAC(K,M)
 \end{equation*}
-as received from the sender, and
+as received from the sender, and produce
 \begin{equation*}
-V_0 = MAC(M_1,V_1)
+K = V_0 = MAC(M_1,V_1)
 \end{equation*}
-where
-\begin{equation*}
-K = V_0
-\end{equation*} 
 Note that
 \begin{equation*}
 xxxAES(K,B)
@@ -86,9 +82,11 @@ denotes the encryption or decryption of a 128-bit plaintext block B with a 128-b
 
 b) Adding a checksum to this MAC will not make it any better. This adds
 no protection to the MAC because the XOR of the message blocks does not
-prevent the key from being retrieved. Since an attacker is able to
+prevent the key from being retrieved. It just increases i by 1 in the reversal step. Since an attacker is able to
 retrieve K, they will still be able to create fake messages and the
-correct MAC's for these messages. It would be trivial to add an additional "correct" checksum of the fake message.  
+correct MAC's for these messages. It would be trivial to add an additional "correct" checksum to the fake message.
+Logically, adding a checksum defined by XORing all of the message blocks together adds no additional information,
+since all of the messages are sent unsecured, and a listening adversary could just as easily compute the checksum himself.
 
 
 \begin{comment}
@@ -136,8 +134,7 @@ x^{super}_{sub}
 \end{equation}
 \end{comment}
 \paragraph{}
-We found ($K_{29}$,$K'_{29}$) to be (0x0214ced4, 0x1353827b) represented
-as hexadecimal. First we note 
+We found ($K_{29}$,$K'_{29}$) to be (0x0214ced4, 0x1353827b) in hexadecimal. First we note 
 that meet in the middle reduces the computation time
 from $2^{2n}$ to $2\times2^n$. This works by encrypting over
 $K$ values and decrypting over $K'$ values until an intermediate value
@@ -161,7 +158,6 @@ decryption phase takes approximately 1.19 hrs. on each of 64 iterations
 totaling nearly 3.2 days. For $2^{29}$ the program successfully found
 $K,K'$ at iteration 20 in roughly 1.5 days. 
 
-\paragraph{}
 Our program uses constant memory and the
 limiting factor is time. The Java Virtual Machine maxes out at 1500M of
 memory, and this is chosen for every $s$. Note we only consider $s \geq
@@ -171,13 +167,15 @@ For cost in time we require $2^{23}$ encryptions and $2^s$ decryptions
 for each of $2^s/2^{23}$ iterations. \\
 
 Memory = 
-\begin{equation}
+\begin{equation*}
 1500M  \geq C2^{23}M \times 64M = C2^{29}M \approx C512M
-\end{equation}
+\end{equation*}
 Time $\approx$ 
-\begin{equation}
-\frac{2^s}{2^{23}}(2^{23} + 2^s) = 2^s + \frac{2^{2s}}{2^{23}}
-\end{equation}
+\begin{equation*}
+O(\frac{2^s}{2^{23}}(2^{23} + 2^s)) = O(2^s + 2^{2s-23})
+\end{equation*}
+
+Note that a lack of memory does result in noticeable performance losses, since if we had significantly more memory (enough to store ciphertext,key pairs for every possible key in the first stage of the meet-in-the-middle attack) we would not need to divide up our key-space and run multiple rounds, bringing the runtime strictly down to $O(2^{s+1})$. This would help increase the s-value for which computation is feasible, although not by much: at large s-values time constraints still make the computation infeasible, even with unlimited memory.
 
 \paragraph{JAVA Program}
 \begin{verbatim}
@@ -208,17 +206,17 @@ public class q2 {
 		String keyf = "C:/Users/victorw/Documents/6.857/group7/k-"+s+".bin";
 		String keypf = "C:/Users/victorw/Documents/6.857/group7/kp-"+s+".bin";
 		FileOutputStream fosk1;
-	    FileOutputStream fosk2;
-	    File file;
-	       try {
-	           file = new File(keyf);
-	           fosk1 = new FileOutputStream(file);                     
-	           file = new File(keypf);
-	           fosk2 = new FileOutputStream(file);
-	       } catch (FileNotFoundException fe) {
-	           System.out.println("could not open output files for writing, exiting");
-	           return;
-	       }
+	  FileOutputStream fosk2;
+	  File file;
+	  try{
+	    file = new File(keyf);
+	    fosk1 = new FileOutputStream(file);                     
+	    file = new File(keypf);
+	    fosk2 = new FileOutputStream(file);
+	  }catch(FileNotFoundException fe){
+	    System.out.println("could not open output files for writing, exiting");
+	    return;
+	  }
 		byte[] ciphertext;
 		byte[] plaintext;
 		String filenameC = "C:/Users/victorw/Documents/6.857/group7/ciphertext-"+s+".bin";
@@ -245,115 +243,115 @@ public class q2 {
 		double iters = Math.pow(2, s)/Math.pow(2, 23);
 		outer:
 		for (int j = 0; j < iters; j++) {
-			System.out.println("PHASE j = " + j);
-			HashMap<String, byte[]> keylist = new HashMap<String, byte[]>();
-			System.gc();
-			int startval = j;
-			boolean overflow = false;
-			// encrypt first
-			//
+		  System.out.println("PHASE j = " + j);
+		  HashMap<String, byte[]> keylist = new HashMap<String, byte[]>();
+		  System.gc();
+		  int startval = j;
+		  boolean overflow = false;
+		  // encrypt first
 			
-			for (int x = startval; x< Math.pow(2, s); x += iters) {
+		  for (int x = startval; x< Math.pow(2, s); x += iters) {
+		    byte[] key = getkey(x);
+		    if (x % 10000000 == 0) {
+		      System.out.println(x);
+		    }
+		    if (x == startval && !overflow) {
+		      overflow = true;
+		    } else if (x == startval && overflow) {
+		      break;
+		    }
+		    
+		    SecretKeySpec skeySpec1 = new SecretKeySpec(key, "AES");
+		    
+		    // Instantiate the cipher
+		    cipher = Cipher.getInstance("AES/ECB/NoPadding");
+		    cipher.init(Cipher.ENCRYPT_MODE, skeySpec1);
+		    byte[] encrypted = cipher.doFinal(plaintext);
 
-				byte[] key = getkey(x);
-				if (x % 10000000 == 0) {
-					System.out.println(x);
-					
-				}
-				if (x == startval && !overflow) {
-					overflow = true;
-				} else if (x == startval && overflow) {
-					break;
-				}
-				SecretKeySpec skeySpec1 = new SecretKeySpec(key, "AES");
+		    keylist.put(new String(encrypted), key);
+		  }
 
-				// Instantiate the cipher
+		  System.out.println("ENCRYPTION PHASE COMPLETE");
+		  overflow = false;
+		  for (int x = 0; x < Math.pow(2,s); x++) {
+		    if (x % 10000000 == 0) {
+		      System.out.println(x);
+		    }
+		    if (x == 0 && !overflow) {
+		      overflow = true;
+		    } else if (x == 0 && overflow) {
+		      break;
+		    }
+		    
+		    byte[] key = getkey(x);				
+		    SecretKeySpec skeySpec2 = new SecretKeySpec(key, "AES");
+		    cipher.init(Cipher.DECRYPT_MODE, skeySpec2);
+		    byte[] decrypted = cipher.doFinal(ciphertext);
 
-				cipher = Cipher.getInstance("AES/ECB/NoPadding");
+		    String decStr = new String(decrypted);
+		    if (keylist.containsKey(decStr)) {
+		      byte[] storedKey = keylist.get(decStr);
+		      System.out.println("Found a potential match");
+		      SecretKeySpec skeySpec1 = new SecretKeySpec(storedKey,"AES");
+		      cipher.init(Cipher.ENCRYPT_MODE, skeySpec1);
+		      byte[] middle_stage = cipher.doFinal(plaintext);
+		      skeySpec2 = new SecretKeySpec(key, "AES");
+		      cipher.init(Cipher.ENCRYPT_MODE, skeySpec2);
+		      byte[] complete = cipher.doFinal(middle_stage);
 
-				cipher.init(Cipher.ENCRYPT_MODE, skeySpec1);
-				byte[] encrypted = cipher.doFinal(plaintext);
-
-				keylist.put(new String(encrypted), key);
-
-			}
-
-			System.out.println("ENCRYPTION PHASE COMPLETE");
-			overflow = false;
-			for (int x = 0; x < Math.pow(2,s); x++) {
-				if (x % 10000000 == 0) {
-					System.out.println(x);
-				}
-				if (x == 0 && !overflow) {
-					overflow = true;
-				} else if (x == 0 && overflow) {
-					break;
-				}
-				byte[] key = getkey(x);
-				
-				SecretKeySpec skeySpec2 = new SecretKeySpec(key, "AES");
-
-				cipher.init(Cipher.DECRYPT_MODE, skeySpec2);
-				byte[] decrypted = cipher.doFinal(ciphertext);
-
-				String decStr = new String(decrypted);
-
-				if (keylist.containsKey(decStr)) {
-					byte[] storedKey = keylist.get(decStr);
-					System.out.println("Found a potential match");
-
-					SecretKeySpec skeySpec1 = new SecretKeySpec(storedKey,
-							"AES");
-					cipher.init(Cipher.ENCRYPT_MODE, skeySpec1);
-					byte[] middle_stage = cipher.doFinal(plaintext);
-
-					skeySpec2 = new SecretKeySpec(key, "AES");
-					cipher.init(Cipher.ENCRYPT_MODE, skeySpec2);
-					byte[] complete = cipher.doFinal(middle_stage);
-
-					if (byteArraysEqual(ciphertext, complete)) {
-						try {
-			                 fosk1.write(storedKey);
-			                 fosk2.write(key);
-			             } catch (IOException e) {
-			                 System.out.println("Could not write keys");
-			             }
-						break outer;
-					} else {
-						System.out.println("Match is no good");
-					}
-				}
-
-			}
-			System.out.println("DECRYPTION PHASE COMPLETE");
-		}
-		System.out.println("DONE");
-	
+	        if (byteArraysEqual(ciphertext, complete)) {
+	          try {
+	            fosk1.write(storedKey);
+	            fosk2.write(key);
+	          } catch (IOException e) {
+	            System.out.println("Could not write keys");
+	          }
+	          System.out.println("Match is valid: k = " + getInt(storedKey));
+	          System.out.println("\nk' = " + getInt(key));
+	          break outer;
+	        } else {
+	          System.out.println("Match is no good");
+	        }
+	      }
+	    }
+	    System.out.println("DECRYPTION PHASE COMPLETE");
+	  }
+	  System.out.println("DONE");
 	}
 
 	private static byte[] getkey(int value) {
 
-		byte[] b = new byte[16];
-		b[12] = (byte) (value >>> 24);
-		b[13] = (byte) (value >>> 16);
-		b[14] = (byte) (value >>> 8);
-		b[15] = (byte) value;
+	  byte[] b = new byte[16];
+	  b[12] = (byte) (value >>> 24);
+	  b[13] = (byte) (value >>> 16);
+	  b[14] = (byte) (value >>> 8);
+	  b[15] = (byte) value;
 
-		return b;
+	  return b;
 
+	}
+	
+	private static int getInt(byte[] key){
+	  int r = 0;
+	  r += key[12]*Math.pow(256,3);
+	  r += key[13]*256*256;
+	  r += key[14]*256;
+	  r += key[15];
+	  return r;
+		
 	}
 
 	private static boolean byteArraysEqual(byte[] a, byte[] b) {
-		if (a.length != b.length)
-			return false;
+	  if (a.length != b.length)
+	    return false;
 
-		for (int i = 0; i < a.length; i++) {
-			if (a[i] != b[i])
-				return false;
-		}
+	  for (int i = 0; i < a.length; i++) {
+	    if (a[i] != b[i])
+	      return false;
+	  }
 
-		return true;
-	}
+	  return true;
+ }
 }
 
 \end{verbatim}
@@ -428,35 +426,7 @@ def testKey(plain,cipher,key,keyPrime):
     else:
         print "keys failed"
 
-# These are miscellaneous string / integer conversion utilities. 
-# (bit manipulation requires that each byte be represented as a Python
-# int, but the input to the AES routine is a string)
-def char_to_int(char):
-    return struct.unpack("B", char)[0]
-
-def int_to_char(x):
-    return struct.pack("B", x)
-
-def string_to_ints(string):
-    return [char_to_int(x) for x in string]
-
-def ints_to_string(ints):
-    return "".join((int_to_char(x) for x in ints))
-
-def pretty_print_byte_string(string):
-    '''
-    Returns a nicely-formatted string of the hex values of each
-    character in the input string.
-    '''
-    return pretty_print_byte_array(string_to_ints(string))
-
-def pretty_print_byte_array(buf):
-    '''
-    Returns a nicely-formatted string of the hex values of each
-    byte in the input list.
-    '''
-    return " ".join(("%02x" % x for x in buf))
-
+# pretty_print functions from aes_utils.py
 \end{verbatim}
 
 \answer{2-3 - Ben's Block Cipher}
